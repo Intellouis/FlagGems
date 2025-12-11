@@ -6,7 +6,7 @@ from queue import Queue
 import torch  # noqa: F401
 
 from .. import backend, error
-from ..common import vendors
+from ..commom_utils import vendors
 
 UNSUPPORT_FP64 = [
     vendors.CAMBRICON,

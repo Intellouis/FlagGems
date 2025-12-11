@@ -8,18 +8,18 @@ from ..utils.pointwise_dynamic import pointwise_dynamic
 logger = logging.getLogger("flag_gems").getChild(__name__.lstrip("."))
 
 
-@pointwise_dynamic(is_tensor=[True, False], promotion_methods=[(0, "INT_TO_FLOAT")])
+@pointwise_dynamic(promotion_methods=[(0, "INT_TO_FLOAT")])
 @triton.jit
-def cos_func(x, inplace):
+def cos_func(x):
     return tl.cos(x.to(tl.float32))
 
 
 def cos(A):
     logger.debug("GEMS_CAMBRICON COS")
-    return cos_func(A, False)
+    return cos_func(A)
 
 
 def cos_(A):
     logger.debug("GEMS_CAMBRICON COS_")
-    cos_func(A, True, out0=A)
+    cos_func(A, out0=A)
     return A

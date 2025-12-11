@@ -1,7 +1,6 @@
 import logging
 
 import torch
-from packaging import version
 
 from flag_gems import testing  # noqa: F401
 from flag_gems import runtime
@@ -22,10 +21,6 @@ current_work_registrar = None
 runtime.replace_customized_ops(globals())
 
 
-def torch_ge(v):
-    return version.parse(torch.__version__) >= version.parse(v)
-
-
 def enable(
     lib=aten_lib,
     unused=None,
@@ -42,16 +37,11 @@ def enable(
             ("_log_softmax_backward_data", log_softmax_backward),
             ("_softmax", softmax),
             ("_softmax_backward_data", softmax_backward),
-            (
-                "_to_copy",
-                to_copy,
-                lambda: version.parse(torch.__version__) >= version.parse("2.4"),
-            ),
+            ("_to_copy", to_copy),
             ("_unique2", _unique2),
             ("_upsample_bicubic2d_aa", _upsample_bicubic2d_aa),
             ("_weight_norm_interface", weight_norm_interface),
             ("_weight_norm_interface_backward", weight_norm_interface_backward),
-            ("moe_sum", moe_sum),
             ("abs", abs),
             ("abs_", abs_),
             ("add.Tensor", add),
@@ -106,11 +96,7 @@ def enable(
             ("clamp_min_", clamp_min_),
             ("constant_pad_nd", constant_pad_nd),
             # ("contiguous", contiguous),
-            (
-                "copy_",
-                copy_,
-                lambda: version.parse(torch.__version__) >= version.parse("2.4"),
-            ),
+            ("copy_", copy_),
             ("cos", cos),
             ("cos_", cos_),
             ("tan", tan),
@@ -180,7 +166,7 @@ def enable(
             ("gt.Scalar", gt_scalar),
             ("gt.Tensor", gt),
             ("hstack", hstack),
-            ("index.Tensor", index),
+            # ("index.Tensor", index),
             ("index_add", index_add),
             ("index_add_", index_add_),
             ("index_put", index_put),
@@ -265,7 +251,6 @@ def enable(
             ("pow_.Tensor", pow_tensor_tensor_),
             ("prod", prod),
             ("prod.dim_int", prod_dim),
-            ("per_token_group_quant_fp8", per_token_group_quant_fp8),
             ("quantile", quantile),
             ("rand", rand),
             ("rand_like", rand_like),
@@ -332,6 +317,7 @@ def enable(
             ("true_divide_.Scalar", true_divide_),
             ("true_divide_.Tensor", true_divide_),
             ("uniform_", uniform_),
+            ("upsample_nearest1d", upsample_nearest1d),
             ("upsample_nearest2d", upsample_nearest2d),
             ("var_mean.correction", var_mean),
             ("vdot", vdot),
@@ -343,8 +329,6 @@ def enable(
             ("where.self_out", where_self_out),
             ("zeros", zeros),
             ("zeros_like", zeros_like),
-            ("scaled_softmax_forward", scaled_softmax_forward),
-            ("scaled_softmax_backward", scaled_softmax_backward),
         ),
         user_unused_ops_list=list(set(unused or [])),
         cpp_patched_ops_list=list(set(aten_patch_list)),

@@ -257,6 +257,8 @@ def count_kernel(
     num_bins: tl.constexpr,
     BLOCK_N: tl.constexpr,
     descending: tl.constexpr,
+    isCloseUnrollControl=True,
+    is_use_mask_zero=True,
 ):
     pid = tl.program_id(0)
 
@@ -367,15 +369,7 @@ def radix_sort_low_mem(arr, k_bits=4, descending=False):
         for p in range(num_passes):
             bit_offset = p * k_bits
             count_kernel[grid](
-                arr_in,
-                counts,
-                M,
-                N,
-                bit_offset,
-                num_bins,
-                BLOCK_N,
-                descending,
-                is_use_mask_zero=True,
+                arr_in, counts, M, N, bit_offset, num_bins, BLOCK_N, descending
             )
 
             total_counts_per_bin = counts.sum(dim=1)
@@ -402,7 +396,6 @@ def radix_sort_low_mem(arr, k_bits=4, descending=False):
                 num_bins,
                 BLOCK_N,
                 descending,
-                is_use_mask_zero=True,
             )
 
             arr_in, arr_out = arr_out, arr_in

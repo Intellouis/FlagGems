@@ -7,17 +7,17 @@ from ..utils.pointwise_dynamic import pointwise_dynamic
 logger = logging.getLogger("flag_gems").getChild(__name__.lstrip("."))
 
 
-@pointwise_dynamic(is_tensor=[True, False], promotion_methods=[(0, "DEFAULT")])
+@pointwise_dynamic(promotion_methods=[(0, "DEFAULT")])
 @triton.jit
-def neg_func(x, inplace):
+def neg_func(x):
     return -x
 
 
 def neg(A):
     logger.debug("GEMS_CAMBRICON NEG")
-    return neg_func(A, False)
+    return neg_func(A)
 
 
 def neg_(A):
     logger.debug("GEMS_CAMBRICON NEG_")
-    return neg_func(A, True, out0=A)
+    return neg_func(A, out0=A)

@@ -1,5 +1,3 @@
-import math
-
 import pytest
 import torch
 from packaging import version
@@ -155,15 +153,8 @@ def test_accuracy_ones_like(shape, dtype):
 @pytest.mark.parametrize("shape", POINTWISE_SHAPES)
 @pytest.mark.parametrize("dtype", BOOL_TYPES + ALL_INT_DTYPES + ALL_FLOAT_DTYPES)
 @pytest.mark.parametrize("xdtype", BOOL_TYPES + ALL_INT_DTYPES + ALL_FLOAT_DTYPES)
-@pytest.mark.parametrize(
-    "fill_value", [3.1415926, 2, False, float("inf"), float("nan")]
-)
+@pytest.mark.parametrize("fill_value", [3.1415926, 2, False])
 def test_accuracy_full_like(shape, dtype, xdtype, fill_value):
-    if isinstance(fill_value, float) and (
-        math.isinf(fill_value) or math.isnan(fill_value)
-    ):
-        if dtype not in ALL_FLOAT_DTYPES:
-            pytest.skip("Skipping inf/nan test for non-float dtypes")
     inp = torch.empty(size=shape, dtype=dtype, device=device)
     ref_inp = to_reference(inp)
 
@@ -171,13 +162,13 @@ def test_accuracy_full_like(shape, dtype, xdtype, fill_value):
     ref_out = torch.full_like(ref_inp, fill_value)
     with flag_gems.use_gems():
         res_out = torch.full_like(inp, fill_value)
-    gems_assert_equal(res_out, ref_out, equal_nan=True)
+    gems_assert_equal(res_out, ref_out)
 
     # with dtype
     ref_out = torch.full_like(ref_inp, fill_value, dtype=dtype)
     with flag_gems.use_gems():
         res_out = torch.full_like(inp, fill_value, dtype=dtype)
-    gems_assert_equal(res_out, ref_out, equal_nan=True)
+    gems_assert_equal(res_out, ref_out)
 
 
 @pytest.mark.skipif(flag_gems.vendor_name == "hygon", reason="RESULT TODOFIX")

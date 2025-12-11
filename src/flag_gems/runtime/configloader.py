@@ -88,21 +88,15 @@ class ConfigLoader(object):
             warnings.warn(f"No heuristics config found for {op_name}")
             return None
 
-    def _resolve_iteration_values(self, gen_config, config_var_key):
-        if isinstance(config_var_key, (list, tuple)):
-            return config_var_key
-        if isinstance(config_var_key, int):
-            return [config_var_key]
-        return gen_config[config_var_key]
-
     def _gen_impl(
         self,
         gen_config,
-        iteration_plan,
+        param_config,
+        iteration_keys,
         std_config,
     ):
         all_configs = []
-        final_step = len(iteration_plan)
+        final_step = len(iteration_keys)
         stack = [{"cur_config": std_config, "current_step": 0}]
 
         while stack:
@@ -121,17 +115,19 @@ class ConfigLoader(object):
                     )
                 )
             else:
-                cur_entry = iteration_plan[current_step]
-                cur_key = cur_entry["key"]
-                key_config = self._resolve_iteration_values(
-                    gen_config, cur_entry["source"]
-                )
+                cur_key = iteration_keys[current_step]
+                if cur_key in param_config["META"]:
+                    config_var_key = param_config["META"][cur_key]
+                else:
+                    config_var_key = param_config[cur_key]
+                if isinstance(config_var_key, int):
+                    key_config = [config_var_key]
+                else:
+                    key_config = gen_config[config_var_key]
                 for single_value in key_config:
                     new_config = copy.deepcopy(cur_config)
-                    if cur_entry["kind"] == "meta_field":
+                    if cur_key in param_config["META"]:
                         new_config["META"][cur_key] = single_value
-                    elif cur_entry["kind"] == "meta_block":
-                        new_config["META"] = copy.deepcopy(single_value)
                     else:
                         new_config[cur_key] = single_value
                     stack.append(
@@ -145,30 +141,14 @@ class ConfigLoader(object):
     def to_gen_config(self, gen_config):
         param_config = gen_config["param_map"]
         meta_config = param_config["META"]
-        iteration_plan = []
-
-        if isinstance(meta_config, dict):
-            for meta_key, source in meta_config.items():
-                iteration_plan.append(
-                    {"key": meta_key, "source": source, "kind": "meta_field"}
-                )
-        else:
-            iteration_plan.append(
-                {"key": "META", "source": meta_config, "kind": "meta_block"}
-            )
-
-        for key, source in param_config.items():
-            if key == "META":
-                continue
-            iteration_plan.append(
-                {"key": key, "source": source, "kind": "config_field"}
-            )
-
+        iteration_keys = list(meta_config) + list(param_config)
+        iteration_keys.remove("META")
         current_config = {"META": {}}
         current_config.update(self.triton_config_default)
         return self._gen_impl(
             gen_config,
-            iteration_plan,
+            param_config,
+            iteration_keys,
             current_config,
         )
 
@@ -190,12 +170,13 @@ class ConfigLoader(object):
         if len(current_op_configs) == 0:
             return configs
 
-        for single_config in current_op_configs:
+        if len(current_op_configs) == 1:
+            single_config = current_op_configs[0]
             if self.gen_key in single_config:
-                configs.extend(self.to_gen_config(single_config))
-                continue
+                return self.to_gen_config(single_config)
 
-            current_config = copy.deepcopy(self.triton_config_default)
+        for single_config in current_op_configs:
+            current_config = self.triton_config_default
             for default_param in current_config:
                 if default_param in single_config:
                     current_config[default_param] = single_config[default_param]

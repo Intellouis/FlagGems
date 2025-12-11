@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-from ..common import vendors
+from ..commom_utils import vendors
 from . import backend_utils
 
 vendor_module = None

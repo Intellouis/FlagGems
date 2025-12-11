@@ -8,7 +8,7 @@ from typing import Callable, List, Mapping, Tuple, Union
 import torch
 
 from flag_gems.utils.code_cache import cache_dir
-from flag_gems.utils.code_utils import IndentedBuffer, write_atomic
+from flag_gems.utils.code_utils import IndentedBuffer
 
 from ..utils import TOTAL_CORE_NUM
 from .vstack import vstack
@@ -498,10 +498,11 @@ class StackKernelCode(IndentedBuffer):
             # generate code and cache.
             self.__gen_code(tensor_num, high, low, dtype)
             file_name = f"{cache_dir()}/stack_{key}_pid_{self.pid}.py"
-            write_atomic(file_name, self.getvalue())
+            with open(file_name, "wt", encoding="utf-8") as f:
+                f.write(self.getvalue())
             # load
             spec = importlib.util.spec_from_file_location(
-                f"_gen_module_{key}_pid_{self.pid}", file_name
+                f"_gen_module_{key}_pid_{self.pid}", f.name
             )
             m = importlib.util.module_from_spec(spec)
             # do not expose it to sys.modules

@@ -15,7 +15,7 @@ logger = logging.getLogger("flag_gems").getChild(__name__.lstrip("."))
 @libtuner(
     configs=runtime.get_tuned_config("mm"),
     key=["M", "N", "K"],
-    strategy=["align32", "align32", "align32"],
+    strategy=["log", "log", "log"],
 )
 @triton.heuristics(runtime.get_heuristic_config("mm"))
 @triton.jit

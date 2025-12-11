@@ -8,9 +8,9 @@ from ..utils.pointwise_dynamic import pointwise_dynamic
 logger = logging.getLogger("flag_gems").getChild(__name__.lstrip("."))
 
 
-@pointwise_dynamic(is_tensor=[True, False], promotion_methods=[(0, "DEFAULT")])
+@pointwise_dynamic(promotion_methods=[(0, "DEFAULT")])
 @triton.jit
-def relu_forward(x, inplace):
+def relu_forward(x):
     return tl.where(x > 0, x, 0)
 
 
@@ -22,11 +22,11 @@ def relu_backward(x, dy):
 
 def relu(self):
     logger.debug("GEMS_CAMBRICON RELU FORWARD")
-    output = relu_forward(self, False)
+    output = relu_forward(self)
     return output
 
 
 def relu_(A):
     logger.debug("GEMS_CAMBRICON RELU_ FORWARD")
-    out = relu_forward(A, True, out0=A)
+    out = relu_forward(A, out0=A)
     return out
