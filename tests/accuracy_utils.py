@@ -130,6 +130,9 @@ UPSAMPLE_SHAPES = [
     (3, 7, 1023, 1025),
 ]
 
+# 1D upsample uses (N, C, W) shapes derived from the 2D cases above.
+UPSAMPLE_SHAPES_1D = [s[:3] for s in UPSAMPLE_SHAPES]
+
 KRON_SHAPES = [
     [(), (2, 3)],
     [(2, 3), ()],
